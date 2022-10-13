@@ -8,11 +8,11 @@ const IngredientForm = React.memo((props) => {
   /*const inputState = useState({ title: '', amount: '' });*/
 
   //state 를 배열 구조화
-  const [inputState, setInputState] = useState({title: '', amount: ''})
+  /*const [inputState, setInputState] = useState({title: '', amount: ''})*/
 
-  /*useState 로 각 input의 value를 관리하고, onChange 이벤트가 발생할 때마다 해당 input의 value를 변경해주는 방식으로 구현했다.
-  const [enteredIngredient, setEnteredIngredient] = useState('');
-  const [enteredAmount, setEnteredAmount] = useState('');*/
+  //useState 로 각 input의 value를 관리하고, onChange 이벤트가 발생할 때마다 해당 input의 value를 변경해주는 방식으로 구현했다.
+  const [enteredTitle, setEnteredTitle] = useState('');
+  const [enteredAmount, setEnteredAmount] = useState('');
 
   /*const inputIngredientRef = useRef();  // useRef()를 사용하면 ref 를 만들 수 있다. ref 는 DOM 에 접근할 수 있게 해준다.
   const inputAmountRef = useRef();*/
@@ -20,11 +20,11 @@ const IngredientForm = React.memo((props) => {
   const submitHandler = (event) => {
     event.preventDefault();
     // ...
-    /*const enteredIngredient = inputIngredientRef.current.value; // ref 를 사용하면 DOM 에 접근할 수 있게 해준다.
+    /*const enteredTitle = inputIngredientRef.current.value; // ref 를 사용하면 DOM 에 접근할 수 있게 해준다.
     const enteredAmount = inputAmountRef.current.value;*/
 
     /*const ingredientData = {
-      title: enteredIngredient,
+      title: enteredTitle,
       amount: enteredAmount,
     }*/
     /*console.log(ingredientData);*/
@@ -33,13 +33,13 @@ const IngredientForm = React.memo((props) => {
   };
 
   /*const ingredientChangeHandler = (event) => {
-    setEnteredIngredient(event.target.value)
+    setEnteredTitle(event.target.value)
   }
 
   const amountChangeHandler = (event) => {
     setEnteredAmount(event.target.value)
   }*/
-  console.log(inputState)
+  console.log(enteredTitle, enteredAmount)
   return (
     <section className="ingredient-form">
       <Card>
@@ -50,13 +50,9 @@ const IngredientForm = React.memo((props) => {
             <input
               type="text"
               id="title"
-              value={inputState.title}
+              value={enteredTitle}
               onChange={(event) => {
-                const newTitle = event.target.value;
-                setInputState((prevInputState)=> ({
-                  title: newTitle,
-                  amount: prevInputState.amount,
-                }))
+                setEnteredTitle(event.target.value)
               }}
             />
           </div>
@@ -66,13 +62,9 @@ const IngredientForm = React.memo((props) => {
             <input
               type="number"
               id="amount"
-              value={inputState.amount}
+              value={enteredAmount}
               onChange={(event)=> {
-                const newAmount = event.target.value;
-                setInputState((prevInputState)=>({
-                  title: prevInputState.title,
-                  amount: newAmount,
-                }))
+                setEnteredAmount(event.target.value)
               }}
             />
           </div>
