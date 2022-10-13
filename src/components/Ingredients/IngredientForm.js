@@ -5,7 +5,10 @@ import './IngredientForm.css';
 
 const IngredientForm = React.memo((props) => {
   /*useState 로 두 개의 상태를 관리*/
-  const inputState = useState({ title: '', amount: '' });
+  /*const inputState = useState({ title: '', amount: '' });*/
+
+  //state 를 배열 구조화
+  const [inputState, setInputState] = useState({title: '', amount: ''})
 
   /*useState 로 각 input의 value를 관리하고, onChange 이벤트가 발생할 때마다 해당 input의 value를 변경해주는 방식으로 구현했다.
   const [enteredIngredient, setEnteredIngredient] = useState('');
@@ -36,7 +39,7 @@ const IngredientForm = React.memo((props) => {
   const amountChangeHandler = (event) => {
     setEnteredAmount(event.target.value)
   }*/
-
+  console.log(inputState)
   return (
     <section className="ingredient-form">
       <Card>
@@ -47,10 +50,10 @@ const IngredientForm = React.memo((props) => {
             <input
               type="text"
               id="title"
-              value={inputState[0].title}
+              value={inputState.title}
               onChange={(event) => {
                 const newTitle = event.target.value;
-                inputState[1]((prevInputState)=> ({
+                setInputState((prevInputState)=> ({
                   title: newTitle,
                   amount: prevInputState.amount,
                 }))
@@ -63,10 +66,10 @@ const IngredientForm = React.memo((props) => {
             <input
               type="number"
               id="amount"
-              value={inputState[0].amount}
+              value={inputState.amount}
               onChange={(event)=> {
                 const newAmount = event.target.value;
-                inputState[1]((prevInputState)=>({
+                setInputState((prevInputState)=>({
                   title: prevInputState.title,
                   amount: newAmount,
                 }))
