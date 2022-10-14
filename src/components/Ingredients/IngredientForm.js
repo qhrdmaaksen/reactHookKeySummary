@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 
 import Card from '../UI/Card';
 import './IngredientForm.css';
@@ -23,11 +23,13 @@ const IngredientForm = React.memo((props) => {
     /*const enteredTitle = inputIngredientRef.current.value; // ref 를 사용하면 DOM 에 접근할 수 있게 해준다.
     const enteredAmount = inputAmountRef.current.value;*/
 
-    /*const ingredientData = {
+    /*해당 props 는 Ingredients.js 에서 호출함
+     * title,amount 전달 값은 addIngredientHandler 로 보내짐*/
+    props.onAddIngredient({
       title: enteredTitle,
       amount: enteredAmount,
-    }*/
-    /*console.log(ingredientData);*/
+    });
+    //console.log(props.onAddIngredient.title, props.onAddIngredient.amount);
 
     /*props.onAddIngredient(ingredientData);*/
   };
@@ -39,7 +41,7 @@ const IngredientForm = React.memo((props) => {
   const amountChangeHandler = (event) => {
     setEnteredAmount(event.target.value)
   }*/
-  console.log(enteredTitle, enteredAmount)
+  console.log(enteredTitle, enteredAmount);
   return (
     <section className="ingredient-form">
       <Card>
@@ -52,7 +54,7 @@ const IngredientForm = React.memo((props) => {
               id="title"
               value={enteredTitle}
               onChange={(event) => {
-                setEnteredTitle(event.target.value)
+                setEnteredTitle(event.target.value);
               }}
             />
           </div>
@@ -63,8 +65,8 @@ const IngredientForm = React.memo((props) => {
               type="number"
               id="amount"
               value={enteredAmount}
-              onChange={(event)=> {
-                setEnteredAmount(event.target.value)
+              onChange={(event) => {
+                setEnteredAmount(event.target.value);
               }}
             />
           </div>
