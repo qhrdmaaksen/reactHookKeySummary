@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState } from 'react';
 
 import IngredientForm from './IngredientForm';
 import Search from './Search';
@@ -9,34 +9,19 @@ function Ingredients() {
    * 목록은 항상 전체가 업데이트되기 때문, 재료가 추가되거나 삭제될 경우*/
   const [userIngredients, setUserIngredients] = useState([]);
 
-  useEffect(() => {
-    /*useEffect 미 사용 시 무한 루프 발생
-데이터를 렌더링 함수 안에서 가져오게 되면, 재료 목록이 렌더링 될 때마다 HTTP 요청을 전송하게
-됩니다, 그리고 HTTP 요청을 보낸 뒤에는 상태(state)를 업데이트하죠, 상태를
-업데이트하면 무슨 일이 일어나죠? 컴포넌트가 리렌더링 됩니다, 그럼 재료 목록도 리렌더링 되기때문
-useEffect 에 의존성배열인 빈 배열을 넣게되면 useEffect 안에 로직은 첫 전체 렌더링 후 한번만 실행되게됨*/
-    /*firebase 에 저장된 재료 데이터 GET 요청*/
-    fetch(
-        'https://react-hooks-update-4630f-default-rtdb.firebaseio.com/ingredients.json',
-    )
-        .then((response) => response.json())
-        .then((responseData) => {
-          const loadedIngredients = [];
-          for (const key in responseData) {
-            loadedIngredients.push({
-              id: key,
-              title: responseData[key].title,
-              amount: responseData[key].amount,
-            });
-          }
-          setUserIngredients(loadedIngredients);
-        });
+  /*이제 Search 컴포넌트에서는 onLoadIngredients 로 함수를 받음
+    Ingredients 컴포넌트에서 Search 컴포넌트의 해당 프로퍼티에 값을 넣어주며
+    함수 포인터를 넘기거나 함수를 추가함, Search 컴포넌트에서 onLoadIngredients 가
+    호출됐을 때 실행할 함수*/
+  // useCallback 을 사용하여 함수를 캐싱 가능 (최적화)
+  const filteredIngredientsHandler = useCallback((filteredIngredients) => {
+    setUserIngredients(filteredIngredients);
   }, []);
 
   /*이 함수는 새로 추가할 ingredient 를 받으며 받은 값은 배열에 저장되어야함*/
   const addIngredientHandler = (ingredient) => {
-    /*fetch() 는 브라우저에서 제공하는 API로서,  HTTP 요청을 보내는 함수
-     * 첫번째 인자로 요청할 URL을 전달하고, 두번째 인자로 요청에 대한 설정을 전달
+    /*fetch() 는 브라우저에서 제공하는 API 로서,  HTTP 요청을 보내는 함수
+     * 첫번째 인자로 요청할 URL 을 전달하고, 두번째 인자로 요청에 대한 설정을 전달
      * 설정에는 method, body, header 등이 있음
      * method 는 요청의 종류를 설정하며, GET, POST, PUT, DELETE 등이 있음
      * body 는 요청에 포함할 데이터를 설정하며, JSON 형식으로 전달
@@ -74,7 +59,7 @@ useEffect 에 의존성배열인 빈 배열을 넣게되면 useEffect 안에 로
       <IngredientForm onAddIngredient={addIngredientHandler} />
 
       <section>
-        <Search />
+        <Search onLoadIngredients={filteredIngredientsHandler} />
         <IngredientList ingredients={userIngredients} onRemoveItem={() => {}} />
       </section>
     </div>
