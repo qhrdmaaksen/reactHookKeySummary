@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 import Card from '../UI/Card';
 import './IngredientForm.css';
+import LoadingIndicator from '../UI/LoadingIndicator';
 
 const IngredientForm = React.memo((props) => {
   /*useState 로 두 개의 상태를 관리*/
@@ -72,6 +73,7 @@ const IngredientForm = React.memo((props) => {
           </div>
           <div className="ingredient-form__actions">
             <button type="submit">재료 추가</button>
+            {props.loading && <LoadingIndicator/>}
           </div>
         </form>
       </Card>
