@@ -32,7 +32,7 @@ function Ingredients() {
      * 반환된 데이터는 then() 의 콜백 함수의 인자로 전달됨
      * catch() 를 통해 에러를 처리할 수 있음*/
     fetch(
-      'https://react-hooks-update-4630f-default-rtdb.firebaseio.com/ingredients.json',
+      `https://react-hooks-update-4630f-default-rtdb.firebaseio.com/ingredients.json`,
       {
         method: 'POST',
         body: JSON.stringify(ingredient),
@@ -54,13 +54,31 @@ function Ingredients() {
       });
   };
 
+  /*이 함수는 삭제할 ingredient 의 id 를 받으며 받은 값은 배열에서 제거되어야함*/
+  const removeIngredientHandler = (ingredientId) => {
+    // Firebase 에서 데이터를 삭제할 때는 해당 데이터의 고유한 ID 값을 사용
+    fetch(`https://react-hooks-update-4630f-default-rtdb.firebaseio.com/ingredients/${ingredientId}.json`,{
+      method: 'DELETE',
+    }).then(response => {
+      // 삭제가 완료되면, 기존의 배열에서 해당 요소를 제거
+      setUserIngredients(prevIngredients =>
+      // filter() 는 배열의 요소를 순회하며, 콜백 함수의 조건에 맞는 요소만 반환
+      // 콜백 함수의 인자로 요소, 인덱스, 배열이 순서대로 전달됨
+      // 콜백 함수의 조건은 true 를 반환하면 해당 요소를 반환하고, false 를 반환하면 해당 요소를 제외
+      // 콜백 함수의 조건은 요소의 id 가 전달받은 ingredientId 와 같지 않은 경우에만 true 를 반환
+      // 즉, 전달받은 ingredientId 와 같은 요소는 제외하고, 나머지 요소를 반환 => 전달받은 ingredientId 와 같은 요소를 제거
+      // 콜백 함수의 조건이 true 를 반환하는 요소만 반환되므로, 전달받은 ingredientId 와 같은 요소는 제거된 배열이 반환됨
+          prevIngredients.filter(ingredient => ingredient.id !== ingredientId))
+    })
+  }
+
   return (
     <div className="App">
       <IngredientForm onAddIngredient={addIngredientHandler} />
 
       <section>
         <Search onLoadIngredients={filteredIngredientsHandler} />
-        <IngredientList ingredients={userIngredients} onRemoveItem={() => {}} />
+        <IngredientList ingredients={userIngredients} onRemoveItem={removeIngredientHandler} />
       </section>
     </div>
   );
