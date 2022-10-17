@@ -3,9 +3,11 @@ import React, {useCallback, useState} from 'react';
 import IngredientForm from './IngredientForm';
 import Search from './Search';
 import IngredientList from './IngredientList';
-
+import ErrorModal from '../UI/ErrorModal';
 function Ingredients() {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState();
+
   /*ingredients 에 재료 목록이 저장되때문에 배열로 초기값 설정
    * 목록은 항상 전체가 업데이트되기 때문, 재료가 추가되거나 삭제될 경우*/
   const [userIngredients, setUserIngredients] = useState([]);
@@ -54,7 +56,10 @@ function Ingredients() {
            * 새로운 요소는 {id: 'id', title: 'title', amount: 'amount'} 형태로 추가된다.*/
           { id: responseData.name, ...ingredient },
         ]);
-      });
+      }).catch(error => {
+        setError('재료 추가 요청 처리 중 에러가 발생했습니다.')
+        setIsLoading(false);
+    })
   };
 
   /*이 함수는 삭제할 ingredient 의 id 를 받으며 받은 값은 배열에서 제거되어야함*/
@@ -62,7 +67,7 @@ function Ingredients() {
     setIsLoading(true);
     // Firebase 에서 데이터를 삭제할 때는 해당 데이터의 고유한 ID 값을 사용
     fetch(
-      `https://react-hooks-update-4630f-default-rtdb.firebaseio.com/ingredients/${ingredientId}.json`,
+      `https://react-hooks-update-4630f-default-rtdb.firebaseio.com/ingredients/${ingredientId}.jon`,
       {
         method: 'DELETE',
       },
@@ -78,11 +83,19 @@ function Ingredients() {
         // 콜백 함수의 조건이 true 를 반환하는 요소만 반환되므로, 전달받은 ingredientId 와 같은 요소는 제거된 배열이 반환됨
         prevIngredients.filter((ingredient) => ingredient.id !== ingredientId),
       );
-    });
+    }).catch(error => {
+      setError('재료 삭제 요청 처리 중 에러가 발생하였습니다.');
+      setIsLoading(false);
+    })
   };
+
+  const clearError = () => {
+    setError(null);
+  }
 
   return (
       <div className="App">
+        {error && <ErrorModal onClose={clearError}>{error}</ErrorModal>}
         <IngredientForm
           onAddIngredient={addIngredientHandler}
           loading={isLoading}
