@@ -1,16 +1,39 @@
-import React, {useCallback, useState} from 'react';
+import React, { useCallback, useState, useReducer } from 'react';
 
 import IngredientForm from './IngredientForm';
 import Search from './Search';
 import IngredientList from './IngredientList';
 import ErrorModal from '../UI/ErrorModal';
+
+//useReducer 는 useState 보다 더 복잡한 상태 업데이트 로직을 작성할 수 있지만,  useState 보다 더 복잡하다.
+const ingredientReducer = (currentIngredients, action) => {
+  //action.type 은 dispatch 함수의 인자로 전달된 객체의 type 프로퍼티를 참조한다.
+  switch (action.type) {
+    case 'SET': //action.type 이 SET 이면 action.ingredients 를 반환 한다.
+      return action.ingredients;
+    case 'ADD': //action.type 이 ADD 이면 action.ingredient 를 currentIngredients 에 추가 한다.
+      return [...currentIngredients, action.ingredient];
+    case 'DELETE': //action.type 이 DELETE 이면 action.id 를 currentIngredients 에서 제거 한다.
+      return currentIngredients.filter(ing => ing.id !== action.id)
+    default:
+      throw new Error('Should not get there!');
+  }
+};
+
 function Ingredients() {
+  //useReducer 를 사용하여 userIngredients 를 관리한다.
+  /*ingredientReducer 는 reducer 함수이고, [] 는 초기값이다.dispatch 는 reducer 함수를 호출하는 함수이다.
+  dispatch 는 action 객체를 인자로 전달 받는다. action 객체는 type 프로퍼티를 가지고 있어야 한다.
+  action 객체의 type 프로퍼티에 따라 reducer 함수가 호출된다. reducer 함수는 action 객체를 인자로 전달 받는다.
+  reducer 함수는 action 객체의 type 프로퍼티에 따라 다른 로직을 수행한다.*/
+  const [userIngredients, dispatch]=useReducer(ingredientReducer, []);
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState();
 
   /*ingredients 에 재료 목록이 저장되때문에 배열로 초기값 설정
    * 목록은 항상 전체가 업데이트되기 때문, 재료가 추가되거나 삭제될 경우*/
-  const [userIngredients, setUserIngredients] = useState([]);
+  //const [userIngredients, setUserIngredients] = useState([]);
 
   /*이제 Search 컴포넌트에서는 onLoadIngredients 로 함수를 받음
     Ingredients 컴포넌트에서 Search 컴포넌트의 해당 프로퍼티에 값을 넣어주며
@@ -18,7 +41,9 @@ function Ingredients() {
     호출됐을 때 실행할 함수*/
   // useCallback 을 사용하여 함수를 캐싱 가능 (최적화)
   const filteredIngredientsHandler = useCallback((filteredIngredients) => {
-    setUserIngredients(filteredIngredients);
+    //setUserIngredients(filteredIngredients);
+    //dispatch 함수를 호출하여 reducer 함수를 호출한다.
+    dispatch({type: 'SET', ingredients: filteredIngredients})
   }, []);
 
   /*이 함수는 새로 추가할 ingredient 를 받으며 받은 값은 배열에 저장되어야함*/
@@ -50,16 +75,21 @@ function Ingredients() {
         return response.json();
       })
       .then((responseData) => {
-        setUserIngredients((prevIngredients) => [
+        dispatch({
+          type: 'ADD',
+          ingredient: {id: responseData.name, ...ingredient}
+        })
+        /*setUserIngredients((prevIngredients) => [
           ...prevIngredients,
-          /*...ingredient 는 기존의 배열에 새로운 요소를 추가하고 새로운 배열을 반환한다.
-           * 새로운 요소는 {id: 'id', title: 'title', amount: 'amount'} 형태로 추가된다.*/
+          /!*...ingredient 는 기존의 배열에 새로운 요소를 추가하고 새로운 배열을 반환한다.
+           * 새로운 요소는 {id: 'id', title: 'title', amount: 'amount'} 형태로 추가된다.*!/
           { id: responseData.name, ...ingredient },
-        ]);
-      }).catch(error => {
-        setError('재료 추가 요청 처리 중 에러가 발생했습니다.')
+        ]);*/
+      })
+      .catch((error) => {
+        setError('재료 추가 요청 처리 중 에러가 발생했습니다.');
         setIsLoading(false);
-    })
+      });
   };
 
   /*이 함수는 삭제할 ingredient 의 id 를 받으며 받은 값은 배열에서 제거되어야함*/
@@ -67,47 +97,62 @@ function Ingredients() {
     setIsLoading(true);
     // Firebase 에서 데이터를 삭제할 때는 해당 데이터의 고유한 ID 값을 사용
     fetch(
-      `https://react-hooks-update-4630f-default-rtdb.firebaseio.com/ingredients/${ingredientId}.jon`,
+      `https://react-hooks-update-4630f-default-rtdb.firebaseio.com/ingredients/${ingredientId}.json`,
       {
         method: 'DELETE',
       },
-    ).then((response) => {
-      setIsLoading(false);
-      // 삭제가 완료되면, 기존의 배열에서 해당 요소를 제거
-      setUserIngredients((prevIngredients) =>
-        // filter() 는 배열의 요소를 순회하며, 콜백 함수의 조건에 맞는 요소만 반환
-        // 콜백 함수의 인자로 요소, 인덱스, 배열이 순서대로 전달됨
-        // 콜백 함수의 조건은 true 를 반환하면 해당 요소를 반환하고, false 를 반환하면 해당 요소를 제외
-        // 콜백 함수의 조건은 요소의 id 가 전달받은 ingredientId 와 같지 않은 경우에만 true 를 반환
-        // 즉, 전달받은 ingredientId 와 같은 요소는 제외하고, 나머지 요소를 반환 => 전달받은 ingredientId 와 같은 요소를 제거
-        // 콜백 함수의 조건이 true 를 반환하는 요소만 반환되므로, 전달받은 ingredientId 와 같은 요소는 제거된 배열이 반환됨
-        prevIngredients.filter((ingredient) => ingredient.id !== ingredientId),
-      );
-    }).catch(error => {
-      setError('재료 삭제 요청 처리 중 에러가 발생하였습니다.');
-      setIsLoading(false);
-    })
+    )
+      .then((response) => {
+        setIsLoading(false);
+        // 삭제가 완료되면, 기존의 배열에서 해당 요소를 제거
+
+        dispatch({
+          type: 'DELETE',
+          id: ingredientId,
+        })
+
+        /*setUserIngredients((prevIngredients) =>
+          // filter() 는 배열의 요소를 순회하며, 콜백 함수의 조건에 맞는 요소만 반환
+          // 콜백 함수의 인자로 요소, 인덱스, 배열이 순서대로 전달됨
+          // 콜백 함수의 조건은 true 를 반환하면 해당 요소를 반환하고, false 를 반환하면 해당 요소를 제외
+          // 콜백 함수의 조건은 요소의 id 가 전달받은 ingredientId 와 같지 않은 경우에만 true 를 반환
+          // 즉, 전달받은 ingredientId 와 같은 요소는 제외하고, 나머지 요소를 반환 => 전달받은 ingredientId 와 같은 요소를 제거
+          // 콜백 함수의 조건이 true 를 반환하는 요소만 반환되므로, 전달받은 ingredientId 와 같은 요소는 제거된 배열이 반환됨
+          prevIngredients.filter(
+            (ingredient) => ingredient.id !== ingredientId,
+          ),
+        );*/
+      })
+      .catch((error) => {
+        // 에러가 발생하면, 에러 메시지를 출력하고, 로딩 상태를 false 로 변경
+
+        setError('재료 삭제 요청 처리 중 에러가 발생하였습니다.');
+        setIsLoading(false);
+      });
   };
 
   const clearError = () => {
+    // 이후, 에러 메시지를 초기화
+    // 이 함수는 IngredientForm 컴포넌트에서 사용됨
+    // 에러 메시지가 발생하면, 에러 메시지를 출력하고, 이후에는 에러 메시지를 초기화
     setError(null);
-  }
+  };
 
   return (
-      <div className="App">
-        {error && <ErrorModal onClose={clearError}>{error}</ErrorModal>}
-        <IngredientForm
-          onAddIngredient={addIngredientHandler}
-          loading={isLoading}
+    <div className="App">
+      {error && <ErrorModal onClose={clearError}>{error}</ErrorModal>}
+      <IngredientForm
+        onAddIngredient={addIngredientHandler}
+        loading={isLoading}
+      />
+      <section>
+        <Search onLoadIngredients={filteredIngredientsHandler} />
+        <IngredientList
+          ingredients={userIngredients}
+          onRemoveItem={removeIngredientHandler}
         />
-        <section>
-          <Search onLoadIngredients={filteredIngredientsHandler} />
-          <IngredientList
-            ingredients={userIngredients}
-            onRemoveItem={removeIngredientHandler}
-          />
-        </section>
-      </div>
+      </section>
+    </div>
   );
 }
 
