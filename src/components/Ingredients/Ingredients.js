@@ -1,4 +1,10 @@
-import React, { useCallback, useState, useReducer, useMemo } from 'react';
+import React, {
+  useCallback,
+  useState,
+  useReducer,
+  useMemo,
+  useEffect,
+} from 'react';
 
 import IngredientForm from './IngredientForm';
 import Search from './Search';
@@ -46,7 +52,8 @@ function Ingredients() {
 
   //useHttp 에서 반환한 httpState 는 { loading, error, data, sendRequest, reqExtra, reqIdentifier, clear } 이다.
   //sendRequest 는 http 요청을 보내는 함수이다. sendRequest 는 useHttp 에서 정의한 sendRequest 함수를 참조한다.
-  const { sendRequest, isLoading, data, error } = useHttp();
+  const { sendRequest, isLoading, data, error, reqExtra, reqIdentifier } =
+    useHttp();
 
   //useReducer 를 사용하여 userIngredients 를 관리한다.
   /*ingredientReducer 는 reducer 함수이고, [] 는 초기값이다.dispatch 는 reducer 함수를 호출하는 함수이다.
@@ -61,6 +68,20 @@ function Ingredients() {
   /*ingredients 에 재료 목록이 저장되때문에 배열로 초기값 설정
    * 목록은 항상 전체가 업데이트되기 때문, 재료가 추가되거나 삭제될 경우*/
   //const [userIngredients, setUserIngredients] = useState([]);
+
+  /*data는 우리가 만든 요청에 있는 필드고, 응답이 오면 그 값을 응답 데이터(responseData)로 업데이트하죠
+즉, state의 data 필드에 값을 설정하는 겁니다, 응답이 오면 data가 변경되는 거죠
+DELETE 요청의 경우 data를 받진 않지만 응답이 오면 값이 바뀌긴 합니다, responseData에 새로운 값을
+넣으니까요, 여기선 그걸로도 충분하죠 Ingredients.js에서 data를 보는 이유는 
+useEffect 함수 안에서 새로운 데이터를 받았을 때
+dispatch()를 호출하기 위함입니다, ingredientReducer를 통해 받은 디스패치 함수죠,*/
+  useEffect(() => {
+    if (!isLoading && !error && reqIdentifier === 'REMOVE_INGREDIENT') {
+      dispatch({ type: 'DELETE', id: reqExtra });
+    } else if (!isLoading && !error && reqIdentifier === 'ADD_INGREDIENT') {
+      dispatch({ type: 'ADD', ingredient: { id: data.name, ...reqExtra } });
+    }
+  }, [data, reqExtra, reqIdentifier, isLoading, error]);
 
   /*이제 Search 컴포넌트에서는 onLoadIngredients 로 함수를 받음
     Ingredients 컴포넌트에서 Search 컴포넌트의 해당 프로퍼티에 값을 넣어주며
@@ -77,9 +98,10 @@ function Ingredients() {
   const addIngredientHandler = useCallback((ingredient) => {
     sendRequest(
       `https://react-hooks-update-4630f-default-rtdb.firebaseio.com/ingredients.json`,
-      {
-        method: 'POST',
-      },
+      'POST',
+      JSON.stringify(ingredient),
+      ingredient,
+      'ADD_INGREDIENT',
     );
     //setIsLoading(true);
     /*http.js 에서 사용토록하여 아래 로직은 주석 처리 한다.
@@ -127,16 +149,17 @@ function Ingredients() {
 					setIsLoading(false);*!/
           dispatchHttp({type: 'ERROR', errorMessage: '재료 추가 요청 처리 중 에러가 발생했습니다.'});
         });*/
-  }, []);
+  }, [sendRequest]);
 
   /*이 함수는 삭제할 ingredient 의 id 를 받으며 받은 값은 배열에서 제거되어야함*/
   const removeIngredientHandler = useCallback(
     (ingredientId) => {
       sendRequest(
         `https://react-hooks-update-4630f-default-rtdb.firebaseio.com/ingredients/${ingredientId}.json`,
-        {
-          method: 'DELETE',
-        },
+        'DELETE',
+        null,
+        ingredientId,
+        'REMOVE_INGREDIENT',
       );
       //setIsLoading(true);
       /*http.js 에서 사용토록하여 아래 로직은 주석 처리 한다.
@@ -196,7 +219,7 @@ sendRequest() 함수는 절대 변경되면 안됩니다, 이를 위해 의존�
     // 이 함수는 IngredientForm 컴포넌트에서 사용됨
     // 에러 메시지가 발생하면, 에러 메시지를 출력하고, 이후에는 에러 메시지를 초기화
     //setError(null);
-    dispatchHttp({ type: 'CLEAR' });
+    //dispatchHttp({ type: 'CLEAR' });
   };
 
   /*useMemo 를 사용해 재료리스트가 필요할때만 렌더링되도록함*/
