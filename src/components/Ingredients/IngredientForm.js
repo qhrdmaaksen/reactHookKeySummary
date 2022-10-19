@@ -5,6 +5,7 @@ import './IngredientForm.css';
 import LoadingIndicator from '../UI/LoadingIndicator';
 
 const IngredientForm = React.memo((props) => {
+  console.log('IngredientForm::Rendering');
   /*useState 로 두 개의 상태를 관리*/
   /*const inputState = useState({ title: '', amount: '' });*/
 

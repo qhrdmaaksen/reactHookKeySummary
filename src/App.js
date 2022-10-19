@@ -17,7 +17,6 @@ const App = (props) => {
   if (authContext.isAuth) {
     content = <Ingredients />;
   }
-
   return content;
 };
 
