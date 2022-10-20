@@ -52,7 +52,7 @@ function Ingredients() {
 
   //useHttp 에서 반환한 httpState 는 { loading, error, data, sendRequest, reqExtra, reqIdentifier, clear } 이다.
   //sendRequest 는 http 요청을 보내는 함수이다. sendRequest 는 useHttp 에서 정의한 sendRequest 함수를 참조한다.
-  const { sendRequest, isLoading, data, error, reqExtra, reqIdentifier } =
+  const { sendRequest, isLoading, data, error, reqExtra, reqIdentifier, clear } =
     useHttp();
 
   //useReducer 를 사용하여 userIngredients 를 관리한다.
@@ -214,13 +214,13 @@ sendRequest() 함수는 절대 변경되면 안됩니다, 이를 위해 의존�
     [sendRequest],
   );
 
-  const clearError = () => {
+  /*const clearError = () => {
     // 이후, 에러 메시지를 초기화
     // 이 함수는 IngredientForm 컴포넌트에서 사용됨
     // 에러 메시지가 발생하면, 에러 메시지를 출력하고, 이후에는 에러 메시지를 초기화
     //setError(null);
     //dispatchHttp({ type: 'CLEAR' });
-  };
+  };*/
 
   /*useMemo 를 사용해 재료리스트가 필요할때만 렌더링되도록함*/
   const ingredientsList = useMemo(() => {
@@ -234,7 +234,7 @@ sendRequest() 함수는 절대 변경되면 안됩니다, 이를 위해 의존�
 
   return (
     <div className="App">
-      {error && <ErrorModal onClose={clearError}>{error}</ErrorModal>}
+      {error && <ErrorModal onClose={clear}>{error}</ErrorModal>}
       <IngredientForm
         onAddIngredient={addIngredientHandler}
         loading={isLoading}

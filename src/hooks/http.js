@@ -1,5 +1,13 @@
 import { useReducer, useCallback } from 'react';
 
+const initialState = {
+  loading: false,
+  error: null,
+  data: null,
+  extra: null,
+  identifier: null,
+};
+
 // httpReducer 는 loading 과 error 를 관리한다.
 // loading 은 true/false 로 관리하고, error 는 null/string 으로 관리한다.
 // loading 은 http 요청을 보내는 중인지 아닌지를 나타내고, error 는 http 요청이 실패했을 때 에러 메시지를 나타낸다.
@@ -25,7 +33,7 @@ const httpReducer = (curHttpState, action) => {
     case 'ERROR':
       return { loading: false, error: action.errorMessage };
     case 'CLEAR':
-      return { ...curHttpState, error: null };
+      return initialState;
     default:
       throw new Error('httpReducer::Should not be reached!');
   }
@@ -35,12 +43,11 @@ const useHttp = () => {
   //useReducer 를 사용하여 httpState 를 관리한다.
   //httpReducer 는 reducer 함수이고, {loading: false, error: null} 는 초기값이다.
   const [httpState, dispatchHttp] = useReducer(httpReducer, {
-    loading: false,
-    error: null,
-    data: null,
-    extra: null,
-    identifier: null,
+    initialState,
   });
+
+  //CLEAR ACTION DISPATCH
+  const clear = useCallback(() => dispatchHttp({ type: 'CLEAR' }), []);
 
   //sendRequest 는 http 요청을 보내는 함수이다.
   //sendRequest 는 http 요청을 보내는 중이면 loading 을 true 로, 요청이 완료되면 loading 을 false 로 설정한다.
@@ -102,6 +109,7 @@ const useHttp = () => {
     sendRequest: sendRequest,
     reqExtra: httpState.extra,
     reqIdentifier: httpState.identifier,
+    clear: clear,
   };
 };
 export default useHttp;

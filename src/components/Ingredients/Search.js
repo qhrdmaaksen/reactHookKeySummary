@@ -2,8 +2,11 @@ import React, { useEffect, useState, useRef } from 'react';
 
 import Card from '../UI/Card';
 import './Search.css';
+import useHttp from '../../hooks/http'; // custom hooks 임포트
+import ErrorModal from '../UI/ErrorModal';
 
 const Search = React.memo((props) => {
+  const { sendRequest, data, isLoading, error, clear } = useHttp(); //useHttp 함수 안에서 리턴해준 것을 불러와서 상수에 저장하는 방식으로 사용
   const { onLoadIngredients } = props;
   const [enteredFilter, setEnteredFilter] = useState('');
   const filterInputRef = useRef();
@@ -34,28 +37,17 @@ useEffect 에 의존성배열인 빈 배열을 넣게되면 useEffect 안에 로
             ? ''
             : `?orderBy="title"&equalTo="${enteredFilter}"`;
         console.log('query', query);
-        fetch(
+        sendRequest(
+          'https://react-hooks-update-4630f-default-rtdb.firebaseio.com/ingredients.json' +
+            query,
+          'GET',
+        );
+        /*fetch(
           'https://react-hooks-update-4630f-default-rtdb.firebaseio.com/ingredients.json' +
             query,
         )
           .then((response) => response.json())
-          .then((responseData) => {
-            const loadedIngredients = [];
-            for (const key in responseData) {
-              loadedIngredients.push({
-                id: key,
-                title: responseData[key].title,
-                amount: responseData[key].amount,
-              });
-            }
-            onLoadIngredients(loadedIngredients);
-          });
-        console.log(
-          'onLoadIngredients',
-          onLoadIngredients,
-          'enteredFilter',
-          enteredFilter,
-        );
+          .then((responseData) => {*/
       }
     }, 500);
     // useEffect 에서 어떤것도 반환하지 않아도되지만 만약 반환한다면 그것은 반드시 함수여야함
@@ -74,13 +66,37 @@ useEffect()에서 새로운 내용을 설정하기 위해서요, 여기서는 �
       clearTimeout(timer);
       console.log('timer clean up');
     };
-  }, [enteredFilter, onLoadIngredients, filterInputRef]);
+  }, [enteredFilter, sendRequest, filterInputRef]);
+
+  // 응답 처리하기기 위한 useEffect
+  useEffect(() => {
+    if (!isLoading && !error && data) {
+      // data는 http custom hooks 에서 받아온 데이터
+      const loadedIngredients = [];
+      for (const key in data) {
+        loadedIngredients.push({
+          id: key,
+          title: data[key].title,
+          amount: data[key].amount,
+        });
+      }
+      onLoadIngredients(loadedIngredients);
+    }
+    console.log(
+      'onLoadIngredients',
+      onLoadIngredients,
+      'enteredFilter',
+      enteredFilter,
+    );
+  }, [data, isLoading, error, onLoadIngredients]);
 
   return (
     <section className="search">
+      {error && <ErrorModal onClose={clear}>{error}</ErrorModal>}
       <Card>
         <div className="search-input">
           <label>Filter by Title</label>
+          {isLoading && <span>...Loading</span>}
           <input
             type="text"
             value={enteredFilter}
